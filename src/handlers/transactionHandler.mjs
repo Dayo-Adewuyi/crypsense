@@ -1,39 +1,9 @@
-import { Framework } from "@vechain/connex-framework";
-import { Driver, SimpleNet } from "@vechain/connex-driver";
 import { decrypt } from "../utils/encryption.mjs";
 import ErrorHandler from "../utils/errorHandler.mjs";
 import { User } from "../model/users.mjs";
-
-const net = new SimpleNet("https://testnet.veblocks.net");
-const driver = await Driver.connect(net);
-
-// now we get the ready-to-use Connex instance object
-const connex = new Framework(driver);
-
-const transferABI = {
-  inputs: [
-    {
-      internalType: "address",
-      name: "to",
-      type: "address",
-    },
-    {
-      internalType: "uint256",
-      name: "amount",
-      type: "uint256",
-    },
-  ],
-  name: "transfer",
-  outputs: [
-    {
-      internalType: "bool",
-      name: "",
-      type: "bool",
-    },
-  ],
-  stateMutability: "nonpayable",
-  type: "function",
-};
+import connex from "../helpers/connex.mjs";
+// import { sendTransaction } from "../helpers/transfer.mjs";
+import sendVIP180Transaction from "../helpers/send.cjs";
 
 const balanceABI = {
   inputs: [
@@ -70,24 +40,8 @@ export const transferToken = async (req, res, next) => {
     if (!findAccount) {
       return next(new ErrorHandler("Account not found", 400));
     }
-
     const decryptKey = decrypt(key);
-
-    const transferMethod = connex.thor
-      .account(contractAddress)
-      .method(transferABI);
-
-    const transfer = await connex.vendor
-      .sign("tx", {
-        from: from,
-        to: to,
-        value: amount,
-        data: "0x",
-        gas: 1000000,
-        gasPrice: 1000000000,
-      })
-      .signer(decryptKey)
-      .request();
+    const transfer = await sendVIP180Transaction(to, amount, decryptKey);
 
     res.status(201).send({
       transfer,
