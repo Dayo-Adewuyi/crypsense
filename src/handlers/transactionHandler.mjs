@@ -1,9 +1,17 @@
 import { decrypt } from "../utils/encryption.mjs";
 import ErrorHandler from "../utils/errorHandler.mjs";
 import { User } from "../model/users.mjs";
-import connex from "../helpers/connex.mjs";
+import { Framework } from "@vechain/connex-framework";
+import { Driver, SimpleNet } from "@vechain/connex-driver";
+
 // import { sendTransaction } from "../helpers/transfer.mjs";
 import sendVIP180Transaction from "../helpers/send.cjs";
+
+const net = new SimpleNet("https://testnet.veblocks.net");
+const driver = await Driver.connect(net);
+
+// now we get the ready-to-use Connex instance object
+const connex = new Framework(driver);
 
 const balanceABI = {
   inputs: [
